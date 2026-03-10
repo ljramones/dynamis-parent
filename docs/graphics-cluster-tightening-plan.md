@@ -1,243 +1,405 @@
-# Graphics Cluster Tightening Plan (Non-Breaking)
+# Graphics Cluster Tightening Plan — v2
 
-Date: 2026-03-10
-Scope: `DynamisLightEngine`, `DynamisGPU`, `DynamisVFX`, `DynamisSky`, `DynamisTerrain`
-Input baseline: `docs/graphics-cluster-architecture-synthesis.md`
+## Purpose
 
-This plan defines staged, non-breaking boundary tightening slices. It is implementation-planning only.
+Tighten the graphics cluster boundaries across:
 
-## 1. Target Seam Model
+- `DynamisLightEngine`
+- `DynamisGPU`
+- `DynamisVFX`
+- `DynamisSky`
+- `DynamisTerrain`
 
-## 1.1 LightEngine -> GPU seam
-Allowed surface:
-- stable execution-facing interfaces from `dynamis-gpu-api`
-- resource/capability contracts that are backend-agnostic
+using **small, non-breaking slices** that stop further architectural drift without triggering a broad rewrite.
 
-Not allowed as stable contract:
-- direct `dynamis-gpu-vulkan` internals in planning-layer contracts
-- backend utility types in host-facing LightEngine APIs
+This plan assumes the following strict ownership decision is now in force:
 
-## 1.2 Feature -> GPU seam (VFX/Sky/Terrain)
-Allowed surface:
-- typed feature execution inputs/outputs mapped to API-level GPU seams
-- feature-local backend adapters behind internal module boundaries
+- **DynamisLightEngine** is the sole owner of global render planning, phase ordering, and host-facing render orchestration.
+- **DynamisGPU** is the sole owner of direct GPU/backend access, GPU resource lifecycle, upload/orchestration, and execution primitives.
+- **Feature repos** (`DynamisVFX`, `DynamisSky`, `DynamisTerrain`) own only feature-local runtime state, feature-local simulation, feature-local render-data generation, and declarative feature requirements.
 
-Not allowed as stable contract:
-- raw Vulkan handles in public feature APIs
-- feature API dependence on `dynamis-gpu-vulkan` internals
+## Core Architectural Rule
 
-## 1.3 LightEngine -> Feature seam
-Allowed surface:
-- typed feature service/update/record contracts
-- declarative feature phase capability contracts
+## DynamisGPU owns
 
-Not allowed:
+- backend API access
+- GPU resource allocation/lifetime
+- uploads/staging
+- descriptor/binding setup
+- pipeline/backend execution details
+- command recording/submission
+- synchronization
+- device-address/handle management
+
+## DynamisLightEngine owns
+
+- render planning
+- global phase/pass ordering
+- frame orchestration
+- host-facing rendering contracts
+- composition of feature-subsystem render participation
+
+## Feature repos own
+
+- feature-local state
+- feature-local simulation
+- feature-local data generation
+- typed feature requests / render-data outputs
+- declarative phase/resource requirements
+
+## Feature repos must not own
+
+- direct Vulkan/backend execution
+- GPU resource lifecycle/orchestration
+- global render planning
+- global pass ordering
+
+## Target Seam Model
+
+## 1. LightEngine → DynamisGPU
+
+Allowed:
+
+- API-level execution/service contracts
+- typed requests
+- typed resource/result contracts
+
+Forbidden:
+
+- direct `dynamis-gpu-vulkan` usage in planning/orchestration code
+- Vulkan handles in planning contracts
+- backend-specific execution logic in LightEngine core APIs
+
+## 2. Feature repo → DynamisGPU
+
+Allowed:
+
+- typed feature execution requests
+- typed resource/result contracts
+- internal adapter seams that shield backend usage
+
+Forbidden:
+
+- stable public APIs exposing raw backend handles
+- direct backend helper usage as part of public feature contracts
+- feature-owned GPU resource lifecycle logic as a stable cross-repo dependency
+
+## 3. LightEngine → Feature repo
+
+Allowed:
+
+- typed feature service/update hooks
+- typed feature output consumption
+- declarative phase/resource requirements
+
+Forbidden:
+
+- feature-owned global phase ordering
+- LightEngine absorbing feature-local simulation/state
 - LightEngine depending on feature backend internals
-- feature contracts exposing backend handles as required inputs
 
-## 1.4 Feature -> LightEngine seam
-Allowed surface:
-- feature-local data generation and explicit phase requirements
-- optional callbacks/capabilities indicating required pass slots
+## 4. Feature repo → LightEngine
 
-Not allowed:
-- feature repos owning global pass ordering policy
-- feature repos encoding hard global frame ordering assumptions as authority
+Allowed:
 
-## 1.5 Cross-cutting seam rules
-- Public APIs: typed, backend-agnostic, minimal.
-- Backend specifics: internal implementation only.
-- Render-planning authority: `DynamisLightEngine` only.
-- GPU execution/resource authority: `DynamisGPU` only.
+- feature-local render-data outputs
+- declarative phase requirements
+- feature metadata needed for orchestration
 
-## 2. Prioritized Tightening Work Items
+Forbidden:
 
-## 2.1 Problem: direct `dynamis-gpu-vulkan` internal coupling
-Where:
-- LightEngine backend
-- VFX Vulkan backend
-- Sky Vulkan backend
-- Terrain Vulkan backend
+- feature repos imposing global render pass order
+- feature repos owning host-wide render policy
+- feature repos encoding global phase sequencing assumptions as stable contracts
 
-Tightened end state:
-- planning and feature public seams use API-level contracts
-- backend-internal dependencies are isolated to implementation modules
+## Non-Goals
 
-Minimal non-breaking first slice:
-- add explicit “GPU adapter boundary” interfaces per repo (internal package) and route new call sites through adapter facades while preserving existing code paths.
+This tightening plan does **not** do the following:
 
-## 2.2 Problem: raw GPU handle leakage in public feature APIs
-Where:
-- VFX frame/draw context
-- Sky/Terrain frame/resource contracts
+- no broad rewrite of the graphics cluster
+- no migration of feature-local logic into DynamisGPU
+- no creation of a large new generic graphics abstraction framework
+- no public API deletions in the first wave
+- no consolidation of repos
+- no attempt to solve all feature/backend leakage in one pass
 
-Tightened end state:
-- public feature APIs expose typed handles/resources or opaque tokens
-- raw backend handles restricted to backend/internal adapters
+## Problem Categories
 
-Minimal non-breaking first slice:
-- introduce parallel typed API fields/methods (additive), keep existing raw-handle methods deprecated but functional.
+## A. Dependency / Authority Problems
 
-## 2.3 Problem: backend package over-export
-Where:
-- Sky Vulkan module exports broad backend packages
-- Terrain Vulkan module exports broad backend packages
+1. direct coupling to `dynamis-gpu-vulkan` internals
+2. feature-side phase-order assumptions leaking render policy out of LightEngine
+3. LightEngine overlapping with DynamisGPU or MeshForge concerns
 
-Tightened end state:
-- only intentional integration packages exported
-- pass/lut/material/renderer internals remain internal
+## B. API Surface Problems
 
-Minimal non-breaking first slice:
-- classify exports into required/public vs internal/deprecate; add usage audit and deprecation notice before export reduction.
+1. raw backend handle leakage into public feature APIs
+2. weakly typed feature seams
+3. over-broad backend package exports
 
-## 2.4 Problem: weakly typed feature seams
-Where:
-- Terrain sky source seam (`Object`)
+These should be treated as related but distinct problems.
 
-Tightened end state:
-- typed feature integration contracts for Sky->Terrain and similar crossings
+## Phase Structure
 
-Minimal non-breaking first slice:
-- add typed overload/interface and route internal use to typed seam; keep old method as compatibility wrapper.
+## Phase A — Boundary Declaration and Seam Shielding
 
-## 2.5 Problem: feature-side phase assumptions leaking render policy
-Where:
-- VFX/Sky/Terrain integration docs and runtime assertions
+### Goal
 
-Tightened end state:
-- LightEngine owns canonical phase ordering contract
-- features declare phase requirements, not global order rules
+Define the seam model clearly and stop further backend leakage without changing feature behavior.
 
-Minimal non-breaking first slice:
-- define shared phase contract spec in LightEngine API/SPI and map existing feature assertions to that spec.
+### Phase A1 — Minimal LightEngine phase contract
 
-## 3. Staged Non-Breaking Phases
+Add a minimal explicit render-phase contract owned by `DynamisLightEngine`.
 
-## Phase A — Seam Definition & Shielding
-Goal:
-- define canonical seam contracts and adapter boundaries without behavior change.
+Scope:
 
-Affected repos:
-- LightEngine, DynamisGPU, VFX, Sky, Terrain
+- phase identifiers / phase model
+- declarative participation requirements
+- no large runtime behavior rewrite
 
-Benefit:
-- stops further drift while code remains stable.
+Success condition:
 
-Risk:
-- Low
+- LightEngine becomes the explicit documented owner of global render phase authority.
 
-Order dependencies:
-- Must precede deeper API cleanup and export reduction.
+### Phase A2 — Internal GPU adapter seams in feature repos
 
-## Phase B — Feature API Cleanup (Typed/Public)
-Goal:
-- reduce raw-handle leakage and weak typing in feature public APIs.
+In `DynamisVFX`, `DynamisSky`, and `DynamisTerrain`, add **internal-only** adapter seams for GPU execution/backend interaction.
 
-Affected repos:
-- VFX, Sky, Terrain (with LightEngine integration touchpoints)
+Important:
 
-Benefit:
-- stronger API boundaries and backend independence.
+- these are anti-corruption layers
+- they are **not** new public SPIs
+- they shield the feature code from direct backend leakage
 
-Risk:
-- Medium (compatibility management needed)
+Success condition:
 
-Order dependencies:
-- After Phase A contracts exist.
+- no new direct `dynamis-gpu-vulkan` usage appears outside these internal adapter seams.
 
-## Phase C — Backend Exposure Reduction
-Goal:
-- reduce over-exported backend packages and isolate implementation-only surfaces.
+### Phase A3 — Typed Terrain ↔ Sky seam
 
-Affected repos:
-- Sky Vulkan, Terrain Vulkan, VFX Vulkan (as needed)
+Replace the weak Terrain↔Sky `Object` seam with a typed contract.
 
-Benefit:
-- prevents accidental external coupling.
+Reason:
 
-Risk:
-- Medium (may break internal consumers if audit is incomplete)
+- narrow
+- high-signal
+- low-risk
+- ideal exemplar for the broader tightening style
 
-Order dependencies:
-- After Phase B migration paths are in place.
+Success condition:
 
-## Phase D — LightEngine Authority Reassertion
-Goal:
-- make LightEngine the single source of render phase ordering and feature orchestration policy.
+- Terrain/Sky coupling becomes typed and explicit without behavior change.
 
-Affected repos:
-- LightEngine (primary), VFX/Sky/Terrain adapters
+## Phase B — Public API Hygiene
 
-Benefit:
-- removes distributed pass-policy ownership.
+### Goal
 
-Risk:
-- Medium
+Stop freezing bad boundaries into public APIs.
 
-Order dependencies:
-- Can begin late Phase B; complete after Phase C.
+### Phase B1 — Raw handle containment
 
-## Phase E — Cluster Cleanup & Validation
-Goal:
-- remove deprecated shims when safe; verify boundaries with tests/docs.
+For VFX, Sky, and Terrain:
 
-Affected repos:
-- all five
+- introduce typed replacements for raw GPU handles in public APIs
+- keep compatibility paths temporarily
 
-Benefit:
-- boundary debt reduction without broad rewrite.
+Critical rule:
 
-Risk:
-- Medium
+> once typed replacements exist, **no new or modified code** may use the old raw-handle public paths.
 
-Order dependencies:
-- last phase.
+### Phase B2 — Weak typing cleanup
 
-## 4. Immediate vs Deferred
+Replace weakly typed public feature seams with typed contracts where justified.
 
-## 4.1 Immediate tightening targets
-1. Define and ratify seam contracts (Phase A).
-2. Add typed replacement seams for raw-handle and weakly typed APIs (Phase B start).
-3. Publish LightEngine-owned phase contract and align feature integrations (Phase D start).
+Success condition:
 
-## 4.2 Near-term follow-up
-4. Backend export reduction after usage audit and migration (Phase C).
-5. Adapter hardening to minimize direct `dynamis-gpu-vulkan` references in non-backend packages.
+- public feature APIs stop leaking backend assumptions and ambiguous coupling.
 
-## 4.3 Watch/defer
-6. Full replacement of all backend handle usage in implementation internals.
-7. Deep geometry-shaping overlap cleanup between LightEngine and MeshForge (execute after cluster seams stabilize).
-8. Broader non-graphics repo boundary work.
+## Phase C — LightEngine Authority Reassertion
 
-## 5. Recommended Repo Execution Order
+### Goal
 
-Recommended order for implementation work:
-1. `DynamisLightEngine` — define canonical phase/orchestration contract and integration seam expectations.
-2. `DynamisVFX` — implement typed API shielding + phase contract adoption.
-3. `DynamisSky` — implement typed API shielding + export classification.
-4. `DynamisTerrain` — implement typed sky seam replacement + API shielding + export classification.
-5. `DynamisGPU` — finalize narrowed adapter seam support and remove residual cross-repo internal leakage where practical.
+Ensure LightEngine is the only global render-planning authority in practice.
 
-Rationale:
-- start with authority contract (`LightEngine`),
-- migrate feature repos to compliant typed seams,
-- then tighten GPU coupling and exposed backend surfaces.
+### Phase C1 — Declarative feature phase participation
 
-## 6. Recommended First Implementation Slice
+Feature repos may declare:
 
-First concrete slice (smallest high-value step):
-- **Phase A1: Cluster seam contract package + docs + adapter stubs**
+- needed phase(s)
+- required resources
+- local ordering constraints
 
-Deliver in one non-breaking pass:
-- LightEngine publishes explicit feature phase contract (declarative ordering model).
-- VFX/Sky/Terrain add internal GPU adapter boundary interfaces and mark raw-handle API points as legacy entry points.
-- Terrain adds typed sky-source seam alongside existing `Object` seam.
+Feature repos may not:
 
-This yields immediate drift control with minimal behavioral risk and sets up all later slices.
+- own host/global pass order
+- encode engine-wide render phase policy
 
-## 7. Plan Guardrails
+### Phase C2 — LightEngine resolves composition
 
-- No broad rewrites.
-- No forced immediate breaking API changes.
-- Each phase must have explicit compatibility strategy and rollback path.
-- Validate each slice with repo-local parity/contract tests before moving to next phase.
+LightEngine becomes the single point that resolves:
+
+- cross-feature ordering
+- phase placement
+- orchestration/composition policy
+
+Success condition:
+
+- feature repos no longer act like mini render planners.
+
+## Phase D — Backend Exposure Reduction
+
+### Goal
+
+Reduce technical debt only after replacement seams are proven.
+
+### Phase D1 — Narrow backend package exports
+
+Reduce public exports in:
+
+- `dynamisvfx-vulkan`
+- `dynamissky-vulkan`
+- `dynamisterrain-vulkan`
+
+### Phase D2 — Shrink direct GPU-internal reach
+
+Route remaining backend/internal calls through the internal seams introduced earlier.
+
+Success condition:
+
+- backend details become implementation details rather than cluster-wide assumptions.
+
+## Phase E — Convergence and Cleanup
+
+### Goal
+
+Finish the tightening in a controlled way.
+
+### Phase E1 — Compatibility path review
+
+Review legacy raw-handle paths and old seams to decide what can be more strongly deprecated.
+
+### Phase E2 — Cluster contract tests
+
+Add/strengthen tests ensuring:
+
+- no new direct backend leakage outside approved seams
+- LightEngine remains sole phase authority
+- typed seams stay stable
+
+Success condition:
+
+- the tightened architecture is enforceable, not merely documented.
+
+## Immediate Priorities
+
+## Priority 1
+
+**LightEngine-owned phase contract**
+
+- minimal
+- explicit
+- no behavior rewrite
+
+## Priority 2
+
+**Typed Terrain ↔ Sky seam**
+
+- best first exemplar
+- low risk
+- high architectural value
+
+## Priority 3
+
+**Internal GPU adapter seams in feature repos**
+
+- shielding only
+- internal only
+- blocks further leakage
+
+## Implementation Order
+
+Recommended repo order:
+
+1. **DynamisLightEngine**
+   - define minimal phase contract only
+2. **DynamisTerrain**
+   - typed Terrain↔Sky seam
+   - internal GPU adapter seam stub
+3. **DynamisSky**
+   - align to typed seam
+   - internal GPU adapter seam stub
+4. **DynamisVFX**
+   - same shielding pattern after seam model is proven
+5. **DynamisGPU**
+   - adapt/support stabilized upstream seam shapes as needed
+
+### Why this order
+
+- LightEngine must declare global phase authority first
+- Terrain is the safest first feature seam to clean up
+- Sky follows naturally because of the Terrain↔Sky coupling
+- VFX is likely the messiest feature repo, so tackle it after the seam style is proven
+- DynamisGPU is the stable execution authority and should adapt to clarified upstream seam shapes rather than being forced first into speculative abstraction changes
+
+## Rules for Phase A Implementation
+
+1. **No behavior rewrites**
+2. **No public API deletions**
+3. **No new public SPIs unless explicitly justified**
+4. **Internal GPU adapter seams are shielding layers first, not frozen new contracts**
+5. **Any typed replacement added must become the preferred path for all new/modified code**
+6. **LightEngine may define phase contracts, but must not absorb feature-local simulation/state**
+7. **DynamisGPU remains the only owner of backend execution/resource logic**
+
+## Explicit Anti-Goals for LightEngine
+
+Because “LightEngine is sole render-planning authority” can be misread, make this explicit:
+
+LightEngine should **not** absorb:
+
+- feature-local simulation/state
+- feature-local render-data generation
+- backend-specific GPU setup
+- asset shaping / geometry preparation
+- scene ownership / world ownership
+
+LightEngine should coordinate, not centralize everything.
+
+## First Implementation Slice
+
+## Recommended Slice A1
+
+### Scope
+
+- minimal LightEngine phase contract
+- typed Terrain↔Sky seam
+- internal GPU adapter seam stubs in Terrain and Sky
+
+### Deliverables
+
+- explicit phase contract in LightEngine
+- typed cross-feature Terrain↔Sky seam
+- internal backend-shielding seams in Terrain and Sky
+- no meaningful runtime behavior change
+- no public API deletions
+
+### Why this slice first
+
+- establishes architecture without large risk
+- proves the tightening style on a narrow seam
+- avoids opening the entire VFX/GPU problem on day one
+- prevents further drift while remaining non-breaking
+
+## Success Criteria for Phase A
+
+After Phase A, the following should be true:
+
+- LightEngine has an explicit phase contract
+- Terrain no longer uses a weakly typed Sky seam
+- Terrain and Sky have internal GPU adapter boundaries
+- no new backend-internal usage is added outside those seams
+- feature behavior is materially unchanged
+
+## One-Line Guiding Principle
+
+> **Move backend execution authority downward into DynamisGPU, keep feature-local logic inside feature repos, and keep global render planning solely inside LightEngine.**
