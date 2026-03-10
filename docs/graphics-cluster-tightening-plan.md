@@ -143,9 +143,27 @@ These should be treated as related but distinct problems.
 
 ## Phase A — Boundary Declaration and Seam Shielding
 
-### Goal
+### Purpose
 
 Define the seam model clearly and stop further backend leakage without changing feature behavior.
+
+### What it changes
+
+- A1: minimal LightEngine phase contract (declarative authority declaration)
+- A2: internal-only GPU adapter seams in feature repos (shielding layers)
+- A3: typed Terrain↔Sky seam replacing weak `Object` coupling
+
+### What it does not change
+
+- no broad behavior rewrites
+- no public API deletions
+- no feature logic migration into DynamisGPU
+
+### Expected outcome
+
+- global phase authority is explicit in LightEngine
+- no new direct backend leakage outside internal feature adapter seams
+- Terrain/Sky seam is typed and explicit
 
 ### Phase A1 — Minimal LightEngine phase contract
 
@@ -192,9 +210,25 @@ Success condition:
 
 ## Phase B — Public API Hygiene
 
-### Goal
+### Purpose
 
 Stop freezing bad boundaries into public APIs.
+
+### What it changes
+
+- B1: typed replacements for raw-handle public API paths
+- B2: typed replacements for weakly typed feature seams
+
+### What it does not change
+
+- no first-wave public API deletions
+- no backend implementation rewrites
+- no new giant framework layer
+
+### Expected outcome
+
+- stable feature APIs become backend-agnostic and typed
+- legacy raw-handle paths remain only as compatibility bridges
 
 ### Phase B1 — Raw handle containment
 
@@ -217,9 +251,24 @@ Success condition:
 
 ## Phase C — LightEngine Authority Reassertion
 
-### Goal
+### Purpose
 
 Ensure LightEngine is the only global render-planning authority in practice.
+
+### What it changes
+
+- C1: feature participation becomes declarative (requirements, not global order)
+- C2: LightEngine explicitly resolves cross-feature composition/ordering
+
+### What it does not change
+
+- no LightEngine takeover of feature-local simulation/state
+- no migration of feature-local render-data generation into LightEngine
+
+### Expected outcome
+
+- feature repos no longer act as mini render planners
+- global pass-order policy is centralized in LightEngine
 
 ### Phase C1 — Declarative feature phase participation
 
@@ -248,9 +297,23 @@ Success condition:
 
 ## Phase D — Backend Exposure Reduction
 
-### Goal
+### Purpose
 
 Reduce technical debt only after replacement seams are proven.
+
+### What it changes
+
+- D1: narrow backend package exports
+- D2: route residual backend/internal reach through shielding seams
+
+### What it does not change
+
+- no speculative broad abstraction rewrite
+- no immediate deletion of still-needed compatibility paths
+
+### Expected outcome
+
+- backend details become implementation details instead of cluster-wide assumptions
 
 ### Phase D1 — Narrow backend package exports
 
@@ -270,9 +333,24 @@ Success condition:
 
 ## Phase E — Convergence and Cleanup
 
-### Goal
+### Purpose
 
 Finish the tightening in a controlled way.
+
+### What it changes
+
+- E1: compatibility-path review/deprecation hardening
+- E2: cluster-level contract tests and guardrails
+
+### What it does not change
+
+- no broad cross-cluster rewrite
+- no out-of-scope architecture reorganization
+
+### Expected outcome
+
+- tightened boundaries are enforceable in CI and review process
+- legacy paths have a controlled retirement plan
 
 ### Phase E1 — Compatibility path review
 
