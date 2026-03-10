@@ -481,3 +481,34 @@ After Phase A, the following should be true:
 ## One-Line Guiding Principle
 
 > **Move backend execution authority downward into DynamisGPU, keep feature-local logic inside feature repos, and keep global render planning solely inside LightEngine.**
+
+## Completed Integration Tightening (Canonicalized)
+
+### LightEngine ↔ Sky seam tightening
+
+Canonical seam-only commits:
+
+- Sky seam: `200f5afb9937cfbf9e61fa8b1f8c3aed4c4ad3b1`
+- LightEngine seam: `73f8ecd9ee2fd124b5a479496a4c1f3111259c4f`
+
+Separate unrelated follow-up:
+
+- `3de5a81ce4886ecae9196ce53b96a0987b74d5fd`
+
+Seam files:
+
+- `VulkanSkyIntegration.java`
+- `VulkanSkyRuntimeBridge.java`
+
+Result:
+
+- LightEngine bridge narrowed to Sky integration facade
+- direct LUT reflection calls removed from LightEngine seam
+- unrelated runtime/doc changes split out of seam commits
+
+### Untracked / non-canonical leftovers
+
+These are outside the canonical seam slice and are not part of the tightening work unless intentionally handled later:
+
+- `DynamisSky/docs/arch_notes.md`
+- `DynamisSky/dynamissky-bench/dependency-reduced-pom.xml`
