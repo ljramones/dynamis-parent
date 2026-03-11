@@ -200,14 +200,33 @@ Outcome:
 - Added focused behavior tests proving seam-first preference and fallback invocation behavior.
 - Preserved compatibility and avoided broad step-loop rewrite.
 
-### P7 — Next candidate (bounded)
+### P7 — Warm-start persistence/cache policy migration (completed)
+
+Commit:
+
+- `cdcef10` (`DynamisPhysics`): migrated warm-start persistence/cache policy ownership into Physics-owned seam control
+
+Before/After/Fallback:
+
+- Before: warm-start persistence/invalidation behavior remained implicitly tied to collision-transitional cache flow.
+- After: Physics-owned cache policy seam (`PhysicsWarmStartCachePolicy`) and map-backed policy (`MapBackedWarmStartCachePolicy`) now own warm-start load/store/invalidation policy for seam-based handling.
+- Fallback: legacy collision-side warm-start cache path remains present and compatibility-safe.
+
+Outcome:
+
+- Added Physics-owned warm-start cache policy contract and default policy implementation.
+- Added policy-backed warm-start application strategy (`PolicyBackedWarmStartApplicationStrategy`).
+- Extended `PhysicsPreferredCollisionResponder` to notify Physics-owned cache policy per collision event, enabling explicit EXIT invalidation.
+- Added focused behavior coverage proving seam-first warm-start policy use and cache invalidation fallback behavior.
+
+### P8 — Next candidate (bounded)
 
 Target:
 
-- Migrate one additional bounded orchestration responsibility, likely warm-start persistence/cache policy ownership, into Physics-owned seam control while preserving legacy fallback.
+- Migrate one additional bounded step-path responsibility: prefer Physics-owned warm-start persistence update path after seam resolution, with legacy cache update retained as explicit fallback.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only one bounded orchestration responsibility migration plus focused behavior/parity coverage.
+- No behavior rewrite; only one bounded orchestration/persistence responsibility migration plus focused behavior/parity coverage.
