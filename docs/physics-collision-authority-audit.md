@@ -182,14 +182,32 @@ Outcome:
 - Added `WarmStartApplicationContactResolutionStrategy` under Physics-owned seam package.
 - Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D.solveVelocity(..., warmStart)` for a representative warm-start case.
 
-### P6 — Next candidate (bounded)
+### P6 — Step-path orchestration preference migration (completed)
+
+Commit:
+
+- `9618d20` (`DynamisPhysics`): added Physics-owned responder bridge preferring seam resolution before legacy collision fallback
+
+Before/After/Fallback:
+
+- Before: legacy collision-side responder/solver flow remained the implicit primary resolution path.
+- After: Physics-owned `PhysicsPreferredCollisionResponder` provides a narrow orchestration bridge that prefers Physics seam strategies for resolvable events.
+- Fallback: legacy `CollisionResponder3D` flow remains available and is invoked when seam conditions do not apply.
+
+Outcome:
+
+- Added `PhysicsPreferredCollisionResponder` as a Physics-owned step-path bridge over `CollisionEvent<T>`.
+- Added focused behavior tests proving seam-first preference and fallback invocation behavior.
+- Preserved compatibility and avoided broad step-loop rewrite.
+
+### P7 — Next candidate (bounded)
 
 Target:
 
-- Migrate one narrow step-path orchestration responsibility so Physics-owned seam handling is preferred before collision-transitional solver fallback.
+- Migrate one additional bounded orchestration responsibility, likely warm-start persistence/cache policy ownership, into Physics-owned seam control while preserving legacy fallback.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only one orchestration responsibility migration plus focused parity/behavior coverage.
+- No behavior rewrite; only one bounded orchestration responsibility migration plus focused behavior/parity coverage.
