@@ -509,17 +509,35 @@ Outcome:
 - Added focused coverage proving observer receives resolved preferred mode.
 - Preserved additive/non-breaking scope with no rollout expansion or default flip.
 
-### P24 — Next candidate (bounded)
+### P24 — Minimal runtime docs/config note (completed)
+
+Commit:
+
+- `a614c2b` (`DynamisAudio`): added a single runtime docs note for `dynamis.audio.collision.assembly` values/default/rollout guidance
+
+Before/After/Fallback:
+
+- Before: runtime config binding existed in code, but accepted values/default/rollout guidance were not documented for integration users.
+- After: `DynamisAudio/docs/engine_integration_notes.md` now documents accepted values (`legacy`, `physics_preferred`), default behavior (`LEGACY` on unset/invalid), and single-path rollout guidance.
+- Fallback: behavior unchanged; no code-path or default changes introduced by this slice.
+
+Outcome:
+
+- Added one bounded docs-only integration note in one location.
+- Preserved additive/non-breaking scope with zero runtime behavior change.
+
+### P25 — Next candidate (bounded)
 
 Target:
 
-- Add one minimal integration-facing documentation/config note in `DynamisAudio` runtime docs showing accepted `dynamis.audio.collision.assembly` values, default behavior, and rollout guidance for single-path adoption.
+- Add one small parser-hardening cleanup in `PhysicsPreferredCollisionWorldFactory` to map runtime property values through enum-friendly normalization (trim/case-fold/synonym handling) while preserving current defaults and behavior.
 
 Constraints:
 
-- Documentation/config guidance only (or minimal parsing hardening if strictly needed).
-- Same consumer path context; no new consumer adoption.
-- No solver/runtime rewrite and no global default behavior change.
+- Single codepath only; no new consumer adoption.
+- No behavior flip: unknown/unset values must still resolve to `LEGACY`.
+- No solver/runtime rewrite and no rollout expansion.
+
 
 
 
