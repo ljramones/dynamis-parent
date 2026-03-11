@@ -544,17 +544,35 @@ Outcome:
 - Added focused tests for trim/case variants and hyphen alias compatibility.
 - Preserved additive/non-breaking scope with no default flip.
 
-### P26 — Next candidate (bounded)
+### P26 — Canonical value and alias docs clarification (completed)
+
+Commit:
+
+- `820c6e7` (`DynamisAudio`): clarified canonical runtime value and compatibility alias in integration docs
+
+Before/After/Fallback:
+
+- Before: docs listed accepted values, but did not explicitly distinguish canonical value usage from alias compatibility.
+- After: docs now state canonical values (`legacy`, `physics_preferred`), compatibility alias (`physics-preferred`), and unchanged fallback semantics (`unset/unknown -> LEGACY`).
+- Fallback: docs-only change; runtime behavior unchanged.
+
+Outcome:
+
+- Added one bounded docs clarification in the same consumer path context.
+- Preserved additive/no-behavior-change scope with no rollout expansion.
+
+### P27 — Next candidate (bounded)
 
 Target:
 
-- Add one minimal deprecation/forward-compat note in `DynamisAudio` docs indicating preferred canonical runtime value (`physics_preferred`) while retaining alias compatibility (`physics-preferred`) for now.
+- Add one tiny startup troubleshooting note in `DynamisAudio` integration docs showing an example command/property value for explicitly forcing `legacy` during rollout diagnostics.
 
 Constraints:
 
-- Documentation-only guidance (no behavior change).
-- Same consumer path context; no rollout expansion.
-- No solver/runtime rewrite and no default change.
+- Documentation-only guidance.
+- Same consumer path context; no new runtime surfaces.
+- No solver/runtime rewrite and no default/behavior changes.
+
 
 
 
