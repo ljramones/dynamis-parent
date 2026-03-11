@@ -164,14 +164,32 @@ Outcome:
 - Added `PositionCorrectionContactResolutionStrategy` under Physics-owned seam package.
 - Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D.solvePosition(...)` for a representative penetration case.
 
-### P5 — Next candidate (bounded)
+### P5 — Warm-start application policy migration (completed)
+
+Commit:
+
+- `9c109fa` (`DynamisPhysics`): migrated warm-start application policy into Physics-owned strategy path
+
+Before/After/Fallback:
+
+- Before: `ContactSolver3D.solveVelocity(..., WarmStartImpulse)` owned warm-start impulse application behavior.
+- After: Physics-owned `WarmStartApplicationContactResolutionStrategy` now owns warm-start application on the migrated seam path.
+- Fallback: legacy `ContactSolver3D` path remains present and compatibility-safe.
+
+Outcome:
+
+- Added Physics-owned `PhysicsWarmStartImpulse` value type.
+- Added `WarmStartApplicationContactResolutionStrategy` under Physics-owned seam package.
+- Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D.solveVelocity(..., warmStart)` for a representative warm-start case.
+
+### P6 — Next candidate (bounded)
 
 Target:
 
-- Migrate one additional solver-adjacent responsibility from collision-transitional path to Physics-owned seam, preferably warm-start application policy.
+- Migrate one narrow step-path orchestration responsibility so Physics-owned seam handling is preferred before collision-transitional solver fallback.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only one responsibility migration plus parity coverage.
+- No behavior rewrite; only one orchestration responsibility migration plus focused parity/behavior coverage.
