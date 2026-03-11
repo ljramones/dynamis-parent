@@ -329,14 +329,32 @@ Outcome:
 - Closed the representative direct-wiring gap identified in P12.
 - Preserved bounded scope (test/integration wiring only; no broad behavior rewrite).
 
-### P14 — Next candidate (bounded)
+### P14 — Production-facing representative entrypoint wiring (completed)
+
+Commit:
+
+- `69fc223` (`DynamisPhysics`): added production-facing representative integration entrypoint `PhysicsCollisionPreferredFlowConfigurator` and routed representative integration coverage through it
+
+Before/After/Fallback:
+
+- Before: representative preferred-path composition was demonstrated in tests, but no dedicated production-facing entrypoint existed for that composed wiring.
+- After: `PhysicsCollisionPreferredFlowConfigurator.configure(...)` provides an opt-in production-facing entrypoint that applies composed preferred-path wiring (`setResponsePathPolicy(...)` + preferred responder assignment) for representative flows.
+- Fallback: legacy/default behavior remains unchanged when configurator is not applied; fallback routing remains explicit inside preferred responder policies.
+
+Outcome:
+
+- Added bounded production-facing entrypoint without changing global defaults.
+- Updated representative integration tests to exercise the production-facing configurator path.
+- Preserved additive/non-breaking scope.
+
+### P15 — Next candidate (bounded)
 
 Target:
 
-- Evaluate whether one production-facing representative integration entrypoint (not test-only) should adopt the same composed preferred-path wiring as demonstrated in P13, while retaining legacy fallback defaults.
+- Add one bounded production-facing convenience preset around `PhysicsCollisionPreferredFlowConfigurator` that wires a default Physics policy bundle (selection/ordering/persistence defaults) for one representative body-adapter shape, while retaining explicit override and fallback behavior.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only one representative production-facing wiring candidate plus focused behavior coverage.
+- No behavior rewrite; only one representative convenience preset plus focused behavior coverage.
