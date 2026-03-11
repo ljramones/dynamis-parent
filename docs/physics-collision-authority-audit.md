@@ -401,17 +401,36 @@ Outcome:
 - Added focused integration coverage for assembly default-path behavior and explicit opt-out fallback routing.
 - Preserved additive/non-breaking scope with no global default flip.
 
-### P18 — Next candidate (bounded)
+### P18 — First external consumer adoption foothold (completed)
+
+Commit:
+
+- `2f9d5dc` (`DynamisCollision`): added one concrete external runtime consumer callsite in `demo` adopting `PhysicsCollisionWorldAssemblies.createWithPreferredDefaults(...)`
+
+Before/After/Fallback:
+
+- Before: preferred-flow runtime assembly helper existed only inside `DynamisPhysics`; no external consumer used it in production code.
+- After: `org.dynamiscollision.demo.PhysicsPreferredCollisionWorldFactory` provides one concrete cross-repo runtime composition callsite that adopts Physics-preferred default wiring.
+- Fallback: explicit seam-selection override remains available; non-adopting callsites remain unchanged.
+
+Outcome:
+
+- Added one bounded external consumer adoption foothold outside `DynamisPhysics` (single repo, single callsite).
+- Added focused coverage proving default preferred-path behavior and explicit opt-out fallback behavior in the external consumer module.
+- Preserved additive/non-breaking scope with no global default flip.
+
+### P19 — Next candidate (bounded)
 
 Target:
 
-- Adopt `PhysicsCollisionWorldAssemblies.createWithPreferredDefaults(...)` in one concrete cross-repo runtime consumer (outside `DynamisPhysics`) and verify opt-out path remains available.
+- Adopt the same preferred-flow assembly path in one primary non-demo runtime consumer (outside `DynamisPhysics`), after minimal dependency alignment if required, while preserving explicit opt-out and legacy defaults.
 
 Constraints:
 
 - Additive and compatibility-preserving.
-- One consumer integration only; no broad rollout across callsites.
+- One consumer integration only; no broad rollout.
 - No solver/runtime rewrite and no global default behavior change.
+
 
 
 
