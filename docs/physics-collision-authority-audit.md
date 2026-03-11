@@ -238,11 +238,29 @@ Outcome:
 - Kept policy-backed warm-start strategy focused on application behavior, with persistence update preference moved to orchestration boundary.
 - Added focused behavior coverage proving seam-path load/store/update preference on resolvable events.
 
-### P9 — Next candidate (bounded)
+### P9 — Fixed-step responder ordering preference migration (completed)
+
+Commit:
+
+- `9151147` (`DynamisPhysics`): moved fixed-step seam strategy ordering preference into Physics-owned policy contract
+
+Before/After/Fallback:
+
+- Before: seam strategy execution order was implicit base-list order in `PhysicsPreferredCollisionResponder`.
+- After: Physics-owned `PhysicsFixedStepResponderOrderingPolicy` now controls preferred strategy ordering for seam-resolvable events.
+- Fallback: legacy collision ordering/flow remains explicit fallback when seam conditions do not apply.
+
+Outcome:
+
+- Added Physics-owned ordering policy contract (`PhysicsFixedStepResponderOrderingPolicy`).
+- Extended `PhysicsPreferredCollisionResponder` to consume ordering policy and execute seam strategies in policy-defined order.
+- Added focused behavior coverage proving policy-controlled execution ordering for one representative seam flow.
+
+### P10 — Next candidate (bounded)
 
 Target:
 
-- Migrate one additional bounded orchestration responsibility so Physics-owned seam policy controls fixed-step responder ordering for one representative flow, with legacy collision ordering retained as explicit fallback.
+- Migrate one bounded residual orchestration responsibility: explicit seam-vs-fallback selection policy ownership (rather than hardcoded predicate) for a representative flow, while preserving legacy fallback compatibility.
 
 Constraints:
 
