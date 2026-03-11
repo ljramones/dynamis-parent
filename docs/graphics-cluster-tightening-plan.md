@@ -128,23 +128,39 @@ Purpose:
 - Preserved backend-heavy Vulkan subpackages as internal/non-exported.
 - Preserved runtime behavior and compatibility (tests green).
 
+### Phase E3 — LightEngine ↔ VFX Descriptor Seam Cleanup
+
+Commits:
+
+- VFX seam provider: `a4ab3ea`
+- LightEngine seam consumer: `d01fd0c`
+- VFX export narrowing: `d53c886`
+
+Purpose:
+
+- Removed LightEngine direct import/use of `org.dynamisvfx.vulkan.descriptor.VulkanVfxDescriptorSetLayout`.
+- Introduced a LightEngine-facing VFX seam via `VulkanVfxService.createDefault(long device)`.
+- Kept descriptor construction/mechanics inside VFX Vulkan internals.
+- Removed `org.dynamisvfx.vulkan.descriptor` JPMS export after consumer audit showed no remaining non-VFX consumers.
+- Preserved production behavior; noted follow-up test-module wiring item for VFX surefire JPMS launch.
+
 Future slices must preserve compatibility and remain narrow.
 Do not combine unrelated architectural tightening work into a single commit.
 
-## Post-E2 Compatibility/Export Audit (Short)
+## Post-E3 Compatibility/Export Audit (Short)
 
-Scope: graphics-cluster state with priority on VFX after `8765d5d`.
+Scope: graphics-cluster state after VFX Stage E2 + E3 seam cleanup (`a4ab3ea`, `d01fd0c`, `d53c886`).
 
 Findings:
-- `org.dynamisvfx.api` is now cleanly typed-first and no longer requires `dynamis.gpu.api`.
-- `org.dynamisvfx.core` exports (`core`, `builder`, `noise`, `serial`, `validate`) are currently justified by active consumer usage across VFX modules/tests/bench; no immediate compatibility-only export identified in this module.
-- `org.dynamisvfx.vulkan` exports are minimal (`org.dynamisvfx.vulkan`, `org.dynamisvfx.vulkan.descriptor`).
-- Remaining likely compatibility-driven pressure point: `org.dynamisvfx.vulkan.descriptor` export, which appears to exist for LightEngine/runtime integration convenience rather than stable long-term feature API design.
-- Backend-heavy Vulkan subpackages (`compute`, `renderer`, `resources`, `hotreload`, `internal.gpu`, etc.) remain internal/non-exported as intended.
+- `org.dynamisvfx.api` remains typed-first and does not require `dynamis.gpu.api`.
+- `org.dynamisvfx.core` exports (`core`, `builder`, `noise`, `serial`, `validate`) remain justified by active consumers across VFX modules/tests/bench.
+- `org.dynamisvfx.vulkan.descriptor` export has been removed; descriptor mechanics are now internal to VFX Vulkan.
+- LightEngine no longer imports `org.dynamisvfx.vulkan.descriptor` in production Vulkan integration path.
+- Remaining compatibility/hygiene item: VFX JPMS surefire test-launch wiring (`org.dynamisvfx.vulkan.parity` package launch visibility), which is test-module configuration, not a production boundary leak.
 
 Recommended next tightening target:
-- **Targeted LightEngine ↔ VFX integration seam cleanup** to remove/reduce direct dependency on `org.dynamisvfx.vulkan.descriptor`, then reassess whether that package can be narrowed or made non-exported (or qualified-export only).
-- Keep this as a narrow seam slice; no scheduler/frame-graph redesign and no DynamisGPU changes.
+- **Narrow VFX JPMS test-module wiring hygiene slice** to restore clean surefire/JPMS test execution without re-opening production exports.
+- After that, proceed to the next cluster authority seam (recommended: Physics ↔ Collision seam tightening).
 
 ## Core Architectural Rule
 
