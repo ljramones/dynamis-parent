@@ -115,8 +115,36 @@ Purpose:
 - Added only required JPMS dependency for current API types (`dynamis.gpu.api`).
 - Left `dynamisvfx-core` and `dynamisvfx-vulkan` without JPMS descriptors (deferred).
 
+### Phase E2 — VFX JPMS Stage 2
+
+Commit:
+
+- VFX JPMS stage 2: `8765d5d`
+
+Purpose:
+
+- Added `module-info.java` for `org.dynamisvfx.core` and `org.dynamisvfx.vulkan`.
+- Kept exports minimal and explicit for current consumers.
+- Preserved backend-heavy Vulkan subpackages as internal/non-exported.
+- Preserved runtime behavior and compatibility (tests green).
+
 Future slices must preserve compatibility and remain narrow.
 Do not combine unrelated architectural tightening work into a single commit.
+
+## Post-E2 Compatibility/Export Audit (Short)
+
+Scope: graphics-cluster state with priority on VFX after `8765d5d`.
+
+Findings:
+- `org.dynamisvfx.api` is now cleanly typed-first and no longer requires `dynamis.gpu.api`.
+- `org.dynamisvfx.core` exports (`core`, `builder`, `noise`, `serial`, `validate`) are currently justified by active consumer usage across VFX modules/tests/bench; no immediate compatibility-only export identified in this module.
+- `org.dynamisvfx.vulkan` exports are minimal (`org.dynamisvfx.vulkan`, `org.dynamisvfx.vulkan.descriptor`).
+- Remaining likely compatibility-driven pressure point: `org.dynamisvfx.vulkan.descriptor` export, which appears to exist for LightEngine/runtime integration convenience rather than stable long-term feature API design.
+- Backend-heavy Vulkan subpackages (`compute`, `renderer`, `resources`, `hotreload`, `internal.gpu`, etc.) remain internal/non-exported as intended.
+
+Recommended next tightening target:
+- **Targeted LightEngine ↔ VFX integration seam cleanup** to remove/reduce direct dependency on `org.dynamisvfx.vulkan.descriptor`, then reassess whether that package can be narrowed or made non-exported (or qualified-export only).
+- Keep this as a narrow seam slice; no scheduler/frame-graph redesign and no DynamisGPU changes.
 
 ## Core Architectural Rule
 
