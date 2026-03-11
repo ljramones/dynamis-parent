@@ -146,11 +146,29 @@ Outcome:
 - Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D` for a representative head-on contact.
 - Preserved behavior and kept migration scope narrow.
 
-### P4 — Next candidate (bounded)
+### P4 — Position-correction migration (completed)
+
+Commit:
+
+- `362d0d6` (`DynamisPhysics`): migrated position-correction responsibility into Physics-owned strategy path
+
+Before/After/Fallback:
+
+- Before: `ContactSolver3D` owned position-correction responsibility via `solvePosition(...)`.
+- After: Physics-owned `PositionCorrectionContactResolutionStrategy` now owns position-correction on the migrated seam path.
+- Fallback: legacy `ContactSolver3D` path remains present and compatibility-safe.
+
+Outcome:
+
+- Extended `PhysicsContactBodyAdapter` with position read/write operations needed for Physics-owned position-correction.
+- Added `PositionCorrectionContactResolutionStrategy` under Physics-owned seam package.
+- Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D.solvePosition(...)` for a representative penetration case.
+
+### P5 — Next candidate (bounded)
 
 Target:
 
-- Migrate one additional solver-adjacent responsibility from collision-transitional path to Physics-owned seam, likely position-correction policy or warm-start application policy.
+- Migrate one additional solver-adjacent responsibility from collision-transitional path to Physics-owned seam, preferably warm-start application policy.
 
 Constraints:
 
