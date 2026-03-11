@@ -491,17 +491,36 @@ Outcome:
 - Added focused behavior coverage for bootstrap preferred and default-legacy behavior.
 - Preserved additive/non-breaking scope with no global default flip.
 
-### P23 — Next candidate (bounded)
+### P23 — Bootstrap observability hook (completed)
+
+Commit:
+
+- `5928cb1` (`DynamisAudio`): added one integration-facing observability hook reporting resolved assembly mode in the existing audio bootstrap path
+
+Before/After/Fallback:
+
+- Before: bootstrap selected preferred/legacy mode from runtime config, but provided no explicit integration-facing signal of the resolved mode.
+- After: `AudioSimulationCollisionWorldBootstrap` now reports resolved `CollisionWorldAssemblyMode` at bootstrap and also supports an observer callback overload for direct integration capture.
+- Fallback: assembly behavior remains unchanged; `LEGACY` default behavior for unset/invalid config is preserved.
+
+Outcome:
+
+- Added one small observability hook in the same consumer path with zero behavior changes.
+- Added focused coverage proving observer receives resolved preferred mode.
+- Preserved additive/non-breaking scope with no rollout expansion or default flip.
+
+### P24 — Next candidate (bounded)
 
 Target:
 
-- Introduce one small integration-facing observability hook (for example, reporting resolved `CollisionWorldAssemblyMode` at bootstrap) in the same audio path, so rollout/debug can confirm selected mode without altering behavior.
+- Add one minimal integration-facing documentation/config note in `DynamisAudio` runtime docs showing accepted `dynamis.audio.collision.assembly` values, default behavior, and rollout guidance for single-path adoption.
 
 Constraints:
 
-- Additive and compatibility-preserving.
-- Same consumer path only; no new rollout surfaces.
+- Documentation/config guidance only (or minimal parsing hardening if strictly needed).
+- Same consumer path context; no new consumer adoption.
 - No solver/runtime rewrite and no global default behavior change.
+
 
 
 
