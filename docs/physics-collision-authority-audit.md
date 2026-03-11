@@ -473,17 +473,36 @@ Outcome:
 - Added focused coverage for unset/default, preferred-configured, and invalid-config fallback behavior.
 - Preserved additive/non-breaking scope with no global default flip.
 
-### P22 — Next candidate (bounded)
+### P22 — Bootstrap helper wiring to runtime config (completed)
+
+Commit:
+
+- `8a83525` (`DynamisAudio`): added one explicit bootstrap/helper callsite using `createFromRuntimeConfig(...)`
+
+Before/After/Fallback:
+
+- Before: runtime-config assembly selection existed, but was exercised only at factory-level entrypoints and tests.
+- After: `AudioSimulationCollisionWorldBootstrap.createCollisionWorld(...)` now wires one concrete bootstrap/helper path through `PhysicsPreferredCollisionWorldFactory.createFromRuntimeConfig(...)`.
+- Fallback: unset/invalid property still resolves to `LEGACY`; non-adopting paths remain unchanged.
+
+Outcome:
+
+- Added one bounded bootstrap wiring callsite (single consumer path).
+- Added focused behavior coverage for bootstrap preferred and default-legacy behavior.
+- Preserved additive/non-breaking scope with no global default flip.
+
+### P23 — Next candidate (bounded)
 
 Target:
 
-- Add one explicit integration wiring callsite in `dynamis-audio-simulation` that uses `createFromRuntimeConfig(...)` from a concrete bootstrap/helper path (not only factory unit tests), while retaining existing non-adopting paths and defaults.
+- Introduce one small integration-facing observability hook (for example, reporting resolved `CollisionWorldAssemblyMode` at bootstrap) in the same audio path, so rollout/debug can confirm selected mode without altering behavior.
 
 Constraints:
 
 - Additive and compatibility-preserving.
-- One additional wiring callsite only; no broad rollout.
+- Same consumer path only; no new rollout surfaces.
 - No solver/runtime rewrite and no global default behavior change.
+
 
 
 
