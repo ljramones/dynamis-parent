@@ -87,6 +87,20 @@ Purpose:
 - Narrowed LightEngine dependency to `VulkanSkyIntegration`.
 - Kept unrelated runtime/doc changes out of seam-only commits.
 
+
+### Phase E0 — VFX JPMS Boundary Planning
+
+Commit:
+
+- VFX planning: `ccd382a`
+
+Purpose:
+
+- Defined intended public VFX surface for JPMS-first locking.
+- Classified internal/backend-only package space to avoid premature exports.
+- Proposed safe staged `module-info.java` introduction (API-first, then core/vulkan).
+- Recorded explicit deferrals so JPMS does not freeze transitional seams.
+
 Future slices must preserve compatibility and remain narrow.
 Do not combine unrelated architectural tightening work into a single commit.
 
