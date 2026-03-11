@@ -256,11 +256,29 @@ Outcome:
 - Extended `PhysicsPreferredCollisionResponder` to consume ordering policy and execute seam strategies in policy-defined order.
 - Added focused behavior coverage proving policy-controlled execution ordering for one representative seam flow.
 
-### P10 — Next candidate (bounded)
+### P10 — Seam-vs-fallback selection policy migration (completed)
+
+Commit:
+
+- `fd39e68` (`DynamisPhysics`): moved seam-vs-fallback applicability decision from hardcoded predicate to Physics-owned policy contract
+
+Before/After/Fallback:
+
+- Before: `PhysicsPreferredCollisionResponder` used a hardcoded seam-applicability predicate.
+- After: Physics-owned `PhysicsSeamSelectionPolicy` controls seam-vs-fallback selection for representative flows.
+- Fallback: legacy collision fallback path remains explicit and compatibility-safe.
+
+Outcome:
+
+- Added Physics-owned selection policy contract (`PhysicsSeamSelectionPolicy`).
+- Extended `PhysicsPreferredCollisionResponder` to delegate seam selection to policy.
+- Added focused behavior coverage proving policy can force fallback even for otherwise seam-resolvable events.
+
+### P11 — Next candidate (bounded)
 
 Target:
 
-- Migrate one bounded residual orchestration responsibility: explicit seam-vs-fallback selection policy ownership (rather than hardcoded predicate) for a representative flow, while preserving legacy fallback compatibility.
+- Migrate one bounded residual orchestration responsibility in collision-transitional step path: make legacy `ContactSolver3D` special-case handling in `CollisionWorld3D.applyResponses(...)` policy-gated so Physics-preferred responder path is explicit first-class handling for one representative flow.
 
 Constraints:
 
