@@ -526,17 +526,36 @@ Outcome:
 - Added one bounded docs-only integration note in one location.
 - Preserved additive/non-breaking scope with zero runtime behavior change.
 
-### P25 — Next candidate (bounded)
+### P25 — Parser-hardening normalization (completed)
+
+Commit:
+
+- `fda87e6` (`DynamisAudio`): centralized runtime assembly-mode parsing with enum-friendly normalization
+
+Before/After/Fallback:
+
+- Before: runtime mode parsing was stringly and lightly normalized in-line.
+- After: `parseAssemblyMode(...)` centralizes normalization (`trim`, case-fold, hyphen aliasing) and maps values to `CollisionWorldAssemblyMode` in one place.
+- Fallback: unset/invalid values still resolve to `LEGACY`; existing behavior/defaults preserved.
+
+Outcome:
+
+- Single-codepath hardening only; no new consumer adoption.
+- Added focused tests for trim/case variants and hyphen alias compatibility.
+- Preserved additive/non-breaking scope with no default flip.
+
+### P26 — Next candidate (bounded)
 
 Target:
 
-- Add one small parser-hardening cleanup in `PhysicsPreferredCollisionWorldFactory` to map runtime property values through enum-friendly normalization (trim/case-fold/synonym handling) while preserving current defaults and behavior.
+- Add one minimal deprecation/forward-compat note in `DynamisAudio` docs indicating preferred canonical runtime value (`physics_preferred`) while retaining alias compatibility (`physics-preferred`) for now.
 
 Constraints:
 
-- Single codepath only; no new consumer adoption.
-- No behavior flip: unknown/unset values must still resolve to `LEGACY`.
-- No solver/runtime rewrite and no rollout expansion.
+- Documentation-only guidance (no behavior change).
+- Same consumer path context; no rollout expansion.
+- No solver/runtime rewrite and no default change.
+
 
 
 
