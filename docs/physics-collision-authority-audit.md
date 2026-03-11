@@ -116,14 +116,26 @@ Outcome:
 - Collision overlap constructs are explicitly transitional (`CollisionWorld3D.step`, `ContactSolver3D`, `PhysicsStep3D`).
 - Compatibility is preserved; no broad solver/runtime rewrite was performed.
 
-### P2 — First legacy contact flow migration (next)
+### P2 — First legacy contact flow migration (completed)
+
+Commit:
+
+- `dc74e53` (`DynamisPhysics`): routed legacy `CollisionEvent<T>` flow through `PhysicsContactResolver`
+
+Outcome:
+
+- Added `CollisionEventContactAdapter` as a narrow transitional adapter from legacy collision events into `DetectedCollisionContact`.
+- Added `PhysicsContactResolver.resolveFromCollisionEvents(...)` to consume one representative legacy flow through the Physics-owned seam.
+- Preserved compatibility and behavior while shifting authority direction toward Physics-owned resolution path.
+
+### P3 — Legacy flow expansion (next)
 
 Target:
 
-- Migrate one representative legacy contact-resolution path from collision-transitional flow to the Physics-owned seam.
+- Migrate one additional legacy flow that currently resolves directly in collision-transitional path, preserving compatibility.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only authority-direction correction for one flow.
+- No behavior rewrite; only incremental authority-direction correction.
