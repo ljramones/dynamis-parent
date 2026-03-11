@@ -128,14 +128,32 @@ Outcome:
 - Added `PhysicsContactResolver.resolveFromCollisionEvents(...)` to consume one representative legacy flow through the Physics-owned seam.
 - Preserved compatibility and behavior while shifting authority direction toward Physics-owned resolution path.
 
-### P3 — Legacy flow expansion (next)
+### P3 — Legacy solver-authority migration (completed)
+
+Commit:
+
+- `6b266cf` (`DynamisPhysics`): migrated normal-impulse velocity-resolution responsibility into Physics-owned strategy path
+
+Before/After/Fallback:
+
+- Before: `ContactSolver3D` owned normal-impulse velocity resolution behavior.
+- After: Physics-owned `NormalImpulseContactResolutionStrategy` now owns that responsibility for the migrated seam path.
+- Fallback: legacy `ContactSolver3D` flow remains present and compatibility-safe.
+
+Outcome:
+
+- Added `PhysicsContactBodyAdapter` and `NormalImpulseContactResolutionStrategy` under Physics-owned seam package.
+- Added parity coverage comparing migrated strategy output with legacy `ContactSolver3D` for a representative head-on contact.
+- Preserved behavior and kept migration scope narrow.
+
+### P4 — Next candidate (bounded)
 
 Target:
 
-- Migrate one additional legacy flow that currently resolves directly in collision-transitional path, preserving compatibility.
+- Migrate one additional solver-adjacent responsibility from collision-transitional path to Physics-owned seam, likely position-correction policy or warm-start application policy.
 
 Constraints:
 
 - Additive and compatibility-preserving.
 - No broad API deletions or package moves.
-- No behavior rewrite; only incremental authority-direction correction.
+- No behavior rewrite; only one responsibility migration plus parity coverage.
