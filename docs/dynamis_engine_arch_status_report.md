@@ -561,7 +561,7 @@ DynamisWorldEngine  integration-heavy — needs reference app for meaningful tes
 
 ### JPMS Adoption (**COMPLETE** — 2026-03-16)
 
-All major subsystems now have `module-info.java` files. DynamisLightEngine was the last to be migrated (8 module descriptors added). ServiceLoader backend discovery formalized with `provides`/`uses` declarations. Remaining without JPMS: DynamisGPU, MeshForge, DynamisECS, DynamisSceneGraph, DynamisSession (consumed as automatic modules).
+All major subsystems now have `module-info.java` files. DynamisLightEngine was migrated first (8 module descriptors added), followed by Layer 2 (DynamisGPU, MeshForge) and Layer 3 (DynamisECS, DynamisSceneGraph, DynamisSession). ServiceLoader backend discovery formalized with `provides`/`uses` declarations. All previously automatic modules now have explicit module descriptors.
 
 ---
 
@@ -686,7 +686,7 @@ org.dynamisengine.light.demos            demo applications
 org.dynamisengine.light.sample           reference host
 ```
 
-Remaining: DynamisGPU, MeshForge, ECS, SceneGraph, Session still lack module-info.java (consumed as automatic modules). Reflection bridges (Sky, upscalers) still use Class.forName — ServiceLoader migration deferred.
+Layer 2 (DynamisGPU, MeshForge) and Layer 3 (DynamisECS, DynamisSceneGraph, DynamisSession) JPMS migration now COMPLETE — all submodules have module-info.java (2026-03-16). Reflection bridges (Sky, upscalers) still use Class.forName — ServiceLoader migration deferred.
 
 ---
 
@@ -723,7 +723,7 @@ The 2026-03-15 audit verified that DynamisAI and DynamisScripting — previously
 
 Remaining work is **code quality**, not architecture:
 * Large-file decomposition Phase 2: OpenGlEngineRuntime (2,370 lines), VulkanMainPipelineBuilder (1,467 lines)
-* JPMS adoption for Layer 2-3 modules (DynamisGPU, MeshForge, ECS, SceneGraph, Session)
+* ~~JPMS adoption for Layer 2-3 modules~~ — **COMPLETE** (DynamisGPU, MeshForge, ECS, SceneGraph, Session all have module-info.java)
 * Reflection bridges → ServiceLoader migration (Sky bridge, upscaler vendors)
 * Incomplete implementations (DynamisAudio native device, DynamisTerrain physics integration)
 * Reference application to host cross-subsystem integration examples
@@ -733,3 +733,4 @@ Completed since last report:
 * Test coverage expanded: VFX (9→123), Sky (15→128), Terrain (19→168)
 * JPMS migration: DynamisLightEngine now has module-info.java across all 8 submodules
 * Package standardization and monorepo reorganization verified via full-system build
+* JPMS migration: Layer 2 (DynamisGPU, MeshForge) and Layer 3 (DynamisECS, DynamisSceneGraph, DynamisSession) now have module-info.java across all submodules
