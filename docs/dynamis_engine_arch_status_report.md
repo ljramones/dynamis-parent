@@ -337,6 +337,19 @@ constrain callable surfaces
 separate public API from compiler internals
 ```
 
+**Thread safety fixes (2026-03-16) — DONE:**
+
+The three classes previously flagged as not thread-safe have been addressed:
+
+```
+ClassManager:     volatile lookupSupplier field, unmodifiable getClasses() return,
+                  define() race confirmed safe
+LambdaRegistry:   4 HashMap → ConcurrentHashMap, 2 int → AtomicInteger,
+                  volatile RegistryEntry.path field
+MVEL.get():       thread safety achieved by fixing ClassManager and LambdaRegistry above
+                  (MVEL class itself had no direct thread safety issues)
+```
+
 Note: DynamisExpression retains `org.mvel3` package as it is a fork of the MVEL3 project.
 
 ---
@@ -609,7 +622,7 @@ DynamisAudio        PanamaAudioDevice           Phase 0 — native calls stubbed
 DynamisAudio        dynamis-audio-music          declared in POM but module not yet created
 DynamisAudio        dynamis-audio-procedural     declared in POM but module not yet created
 DynamisTerrain      physics/meshforge modules    requires uncommented with correct module names — DONE
-DynamisExpression   thread safety                ClassManager, LambdaRegistry, MVEL.get() not thread-safe (alpha)
+DynamisExpression   thread safety                DONE — ClassManager, LambdaRegistry fixed (see §6)
 ```
 
 ---
@@ -764,7 +777,8 @@ Remaining work is **code quality**, not architecture:
 * Incomplete implementations (DynamisAudio native device)
 * Reference application to host cross-subsystem integration examples
 
-Completed since last report:
+Completed since last report (2026-03-16):
+* DynamisExpression thread safety: ClassManager (volatile + unmodifiable), LambdaRegistry (ConcurrentHashMap + AtomicInteger + volatile), MVEL.get() safe via upstream fixes
 * OpenGlContext decomposed: 3,553 → 1,618 lines (6 extracted classes)
 * Test coverage expanded: VFX (9→123), Sky (15→128), Terrain (19→168), Audio (→462), UI (→98), WorldEngine (→45)
 * JPMS migration: complete across all engine layers (1-7), every subsystem has module-info.java
