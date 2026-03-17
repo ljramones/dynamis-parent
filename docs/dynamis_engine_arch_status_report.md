@@ -6,7 +6,7 @@ This is meant to be the **architectural snapshot of the engine right now**, not 
 
 # Dynamis Engine Architecture Status Report
 
-Date: 2026-03-16
+Date: 2026-03-17
 Scope: System-wide subsystem boundary ratification synthesis + package standardization
 
 ---
@@ -625,9 +625,14 @@ Note: DynamisExpression mvel-main has 156 pre-existing test failures unrelated t
 ### Incomplete Implementations
 
 ```
-DynamisAudio        PanamaAudioDevice           Phase 0 — native calls stubbed (WASAPI/CoreAudio/ALSA)
-DynamisAudio        dynamis-audio-music          declared in POM but module not yet created
-DynamisAudio        dynamis-audio-procedural     declared in POM but module not yet created
+DynamisAudio        PanamaAudioDevice           Phase 0 — stubs documented with native binding plans
+                                                 for CoreAudio/WASAPI/ALSA, logging added
+DynamisAudio        dynamis-audio-music          DONE — 8 source files, 22 tests
+                                                 (MusicTrack, MusicLayer, MusicPlayer,
+                                                  MusicLayerMixer, MusicScheduler, DefaultMusicPlayer)
+DynamisAudio        dynamis-audio-procedural     DONE — 10 source files, 30 tests
+                                                 (Oscillator hierarchy, WhiteNoiseGenerator,
+                                                  ADSR Envelope, SynthVoice)
 DynamisTerrain      physics/meshforge modules    requires uncommented with correct module names — DONE
 DynamisExpression   thread safety                DONE — ClassManager, LambdaRegistry fixed (see §6)
 ```
@@ -715,8 +720,9 @@ DynamisTerrain   19 → 168 tests   Frustum, Matrix4f, HeightmapOps, ProceduralH
 Expanded (2026-03-16):
 
 ```
-DynamisAudio       → 462 tests   GainNode, CompressorNode, EqNode, FingerprintDrivenReverbNode,
-                                  EmitterParams, ReverbWetGainCalculator, FingerprintBlender, LinearResampler
+DynamisAudio       → 514 tests   GainNode, CompressorNode, EqNode, FingerprintDrivenReverbNode,
+                                  EmitterParams, ReverbWetGainCalculator, FingerprintBlender, LinearResampler,
+                                  dynamis-audio-music (22 new), dynamis-audio-procedural (30 new)
 DynamisUI          → 98 tests    FlowLayout, StackLayout, Label, PerformanceOverlay,
                                   event routing edge cases, Bounds extensions
 DynamisWorldEngine → 45 tests    DefaultWorldTickRunner, DefaultWorldProjector,
@@ -783,7 +789,7 @@ Remaining work is **code quality**, not architecture:
 * ~~Large-file decomposition Phase 2~~ — **COMPLETE**: OpenGlEngineRuntime (2,370 → 1,120, 53% reduction), VulkanMainPipelineBuilder (1,467 → 453, 69% reduction)
 * ~~JPMS adoption~~ — **COMPLETE engine-wide** (all layers 1-7 have module-info.java)
 * ~~Reflection bridges → ServiceLoader migration~~ — **COMPLETE** (ExternalUpscalerBridge, VendorUpscalerSdkProvider, VulkanSkyRuntimeBridge)
-* Incomplete implementations (DynamisAudio native device)
+* Incomplete implementations (DynamisAudio PanamaAudioDevice native bindings)
 * Reference application to host cross-subsystem integration examples
 
 Completed since last report (2026-03-16):
@@ -797,3 +803,9 @@ Completed since last report (2026-03-16):
 * Hygiene: DynamisTerrain physics/meshforge module requires uncommented with correct module names
 * Hygiene: DynamisCore lifecycle exceptions moved to WorldEngine api.lifecycle
 * ServiceLoader migration: ExternalUpscalerBridge, VendorUpscalerSdkProvider, VulkanSkyRuntimeBridge — all reflection-based bridges eliminated
+
+Completed since last report (2026-03-17):
+* DynamisAudio dynamis-audio-music: scaffolded with 8 source files, 22 tests (MusicTrack, MusicLayer, MusicPlayer, MusicLayerMixer, MusicScheduler, DefaultMusicPlayer)
+* DynamisAudio dynamis-audio-procedural: scaffolded with 10 source files, 30 tests (Oscillator hierarchy, WhiteNoiseGenerator, ADSR Envelope, SynthVoice)
+* DynamisAudio PanamaAudioDevice: Phase 0 stubs documented with native binding plans for CoreAudio/WASAPI/ALSA, logging added
+* Test coverage expanded: DynamisAudio 462 → 514 tests (music +22, procedural +30)
