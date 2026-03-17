@@ -17,7 +17,7 @@ The Dynamis engine architecture is structurally strong. Most subsystems have **c
 
 The **package standardization initiative** is now **COMPLETE** — all subsystem Java packages have been unified under the `org.dynamisengine.*` root. This eliminates inconsistent naming conventions that accumulated during early development and establishes a single, predictable namespace for the entire engine.
 
-Additionally, a **large-file refactoring program** has split oversized source files across MeshForge, DynamisGPU, and DynamisPhysics, improving maintainability without changing runtime behavior.
+Additionally, a **large-file refactoring program** has split oversized source files across MeshForge, DynamisGPU, DynamisPhysics, and DynamisLightEngine (Phases 1 and 2), improving maintainability without changing runtime behavior.
 
 The architecture currently falls into three categories:
 
@@ -534,11 +534,18 @@ DynamisLightEngine  OpenGlContext.java           3,553 → 1,618 lines (2026-03-
                OpenGlTextureLoader (244), OpenGlTemporalAA (226), GlMathUtil (152)
 ```
 
-**Remaining high priority:**
+**Phase 2 — DynamisLightEngine (2026-03-16):**
 
 ```
-DynamisLightEngine  OpenGlEngineRuntime.java      2,370 lines  → extract capability-specific coordinators
-DynamisLightEngine  VulkanMainPipelineBuilder.java 1,467 lines  → extract pass-specific builders
+DynamisLightEngine  OpenGlEngineRuntime.java       2,370 → 1,120 lines (53% reduction)
+    Extracted: 4 capability-specific coordinator classes
+DynamisLightEngine  VulkanMainPipelineBuilder.java 1,467 → 453 lines (69% reduction)
+    Extracted: 3 pass-specific builder classes
+```
+
+**Monitoring (no further decomposition planned):**
+
+```
 DynamisLightEngine  VulkanContext.java             1,840 lines  → acceptable (well-decomposed into subpackages)
 ```
 
@@ -576,7 +583,7 @@ DynamisWorldEngine  → 45 tests      (36 new: DefaultWorldTickRunner, DefaultWo
 **Remaining gaps:**
 
 ```
-OpenGlEngineRuntime   2,370 lines — testable after decomposition
+OpenGlEngineRuntime   decomposed (2,370 → 1,120 lines) — now testable
 ```
 
 ---
@@ -666,9 +673,9 @@ No correction required.
 
 ---
 
-### Program 4 — DynamisLightEngine Large-File Decomposition (**PHASE 1 DONE**)
+### Program 4 — DynamisLightEngine Large-File Decomposition (**DONE — Phase 1 + Phase 2**)
 
-`OpenGlContext.java` decomposed from 3,553 → 1,618 lines (2026-03-15):
+**Phase 1** — `OpenGlContext.java` decomposed from 3,553 → 1,618 lines (2026-03-15):
 
 ```
 GlShaderSources.java          868 lines  (GLSL source strings)
@@ -679,14 +686,16 @@ OpenGlTemporalAA.java         226 lines  (TAA jitter, motion vectors, telemetry)
 GlMathUtil.java                152 lines  (matrix math utilities)
 ```
 
-All 48 engine-impl-opengl tests pass after decomposition.
+All 48 engine-impl-opengl tests pass after Phase 1 decomposition.
 
-**Remaining (Phase 2):**
+**Phase 2** — OpenGlEngineRuntime + VulkanMainPipelineBuilder decomposed (2026-03-16):
 
 ```
-OpenGlEngineRuntime.java       2,370 lines  → extract capability-specific coordinators
-VulkanMainPipelineBuilder.java 1,467 lines  → extract pass-specific builders
+OpenGlEngineRuntime.java       2,370 → 1,120 lines (53% reduction), 4 extracted classes
+VulkanMainPipelineBuilder.java 1,467 → 453 lines  (69% reduction), 3 extracted classes
 ```
+
+All large-file decomposition targets are now complete.
 
 ---
 
@@ -717,7 +726,7 @@ DynamisWorldEngine → 45 tests    DefaultWorldTickRunner, DefaultWorldProjector
 **Remaining targets:**
 
 ```
-OpenGlEngineRuntime   2,370 lines — testable after decomposition
+OpenGlEngineRuntime   decomposed (2,370 → 1,120 lines) — now testable
 ```
 
 ---
@@ -771,7 +780,7 @@ Key strengths:
 The 2026-03-15 audit verified that DynamisAI and DynamisScripting — previously flagged for architectural correction — are architecturally sound. The `commitTick` concern in AI was clarified as internal agent state snapshotting, and Scripting's Oracle/Chronicler causality chain is correctly separated.
 
 Remaining work is **code quality**, not architecture:
-* Large-file decomposition Phase 2: OpenGlEngineRuntime (2,370 lines), VulkanMainPipelineBuilder (1,467 lines)
+* ~~Large-file decomposition Phase 2~~ — **COMPLETE**: OpenGlEngineRuntime (2,370 → 1,120, 53% reduction), VulkanMainPipelineBuilder (1,467 → 453, 69% reduction)
 * ~~JPMS adoption~~ — **COMPLETE engine-wide** (all layers 1-7 have module-info.java)
 * ~~Reflection bridges → ServiceLoader migration~~ — **COMPLETE** (ExternalUpscalerBridge, VendorUpscalerSdkProvider, VulkanSkyRuntimeBridge)
 * Incomplete implementations (DynamisAudio native device)
@@ -780,6 +789,7 @@ Remaining work is **code quality**, not architecture:
 Completed since last report (2026-03-16):
 * DynamisExpression thread safety: ClassManager (volatile + unmodifiable), LambdaRegistry (ConcurrentHashMap + AtomicInteger + volatile), MVEL.get() safe via upstream fixes
 * OpenGlContext decomposed: 3,553 → 1,618 lines (6 extracted classes)
+* Large-file Phase 2: OpenGlEngineRuntime 2,370 → 1,120 lines (4 extracted classes), VulkanMainPipelineBuilder 1,467 → 453 lines (3 extracted classes)
 * Test coverage expanded: VFX (9→123), Sky (15→128), Terrain (19→168), Audio (→462), UI (→98), WorldEngine (→45)
 * JPMS migration: complete across all engine layers (1-7), every subsystem has module-info.java
 * Package standardization and monorepo reorganization verified via full-system build
