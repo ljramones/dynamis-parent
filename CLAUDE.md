@@ -19,7 +19,7 @@ Convenience scripts: `./build.sh` (install), `./deploy.sh` (verify + deploy).
 ## Key Details
 
 - **JDK 25** (`maven.compiler.release=25`)
-- **GPG signing** is always active (pinentry loopback mode)
+- **GPG signing** only activates with `-Prelease` profile (pinentry loopback mode)
 - **Release profile** (`-Prelease`) activates `central-publishing-maven-plugin` for Maven Central publishing; requires Sonatype credentials in `~/.m2/settings.xml`
 - This POM must be installed locally (`mvn install`) before building any downstream Dynamis component that declares it as `<parent>`
 
