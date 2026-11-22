@@ -55,7 +55,7 @@ Add the parent to your `pom.xml`:
 <parent>
     <groupId>org.dynamisengine</groupId>
     <artifactId>dynamis-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </parent>
 ```
 
